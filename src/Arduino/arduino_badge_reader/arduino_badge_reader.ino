@@ -11,12 +11,12 @@
 
 boolean DEBUG = true;
 
-String ssid = "TIM-67341415"; //"iPhone di Simone"; // "TIM-67341415";
-String password = "6JUXimp6i8CBfk5mvKaOeSbU"; // "12345678"; //"6JUXimp6i8CBfk5mvKaOeSbU";
+String ssid = "ssid"
+String password = "password"
 
 String TARGET_ID = "0";
 String TARGET_TYPE = "TCP";
-String TARGET_ADDR = "192.168.1.5"; //"172.20.10.2"
+String TARGET_ADDR = "192.168.1.5"; // ip of tcp server
 String TARGET_PORT = "11000";
 
 struct ResponseServerTCP {
@@ -29,26 +29,27 @@ struct ResponseServerTCP {
 int const BUZZER_PIN = 6;
 
 /*
- * Protocollo di comunicazione:
- *   - $ carattere di inizio trasmissione
- *   - & carattere di fine trasmissione
- *   - . separatore parametri
+ * 
+ * Communication Protocol:
+ *   - $ character transmission start
+ *   - & character transmission end
+ *   - . separator parameters
  *
  *   Parametri:
  *   - esito: 0,1
- *   - Messaggio: messaggio di risposta
- *   - dataOra: null || data e ora timbratura
+ *   - Messaggio: reply message
+ *   - dataOra: null || date and time stamping
  */
 
 SoftwareSerial esp8266(7, 8); // RX, TX
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 LiquidCrystal lcd(A0, A1, A2, A3, A4, A5);
 
-//prototipi:
-String send_AT_ESP8266(String command, int wait, String lastStr); // funzione utilizzata per l'invio di comandi AT al modulo wifi,ritorna la risposta del esp8266 sotto forma di stringa
-String dump_byte_array(byte* buffer, byte bufferSize); // restituisce la stringa contentente il codice identificativo del tag
-ResponseServerTCP timbra(String codiceIdentificativo); //invia il codice identificativo al server e restituisce la risposta
-void chiudiConnesione(); //chiude la connesione col server
+//prototypes:
+String send_AT_ESP8266(String command, int wait, String lastStr); // function used to send AT commands to the wifi module, returns the esp8266 response as a string
+String dump_byte_array(byte* buffer, byte bufferSize); // returns the string containing the tag identification code
+ResponseServerTCP timbra(String codiceIdentificativo); // Sends the identification code to the server and returns the response
+void chiudiConnesione(); // close the connection
 
 void setup()
 {
@@ -70,9 +71,9 @@ void setup()
 
 
     if (DEBUG)
-        Serial.println("Inizializzazione modulo wifi...");
+        Serial.println("Inizializzazione modulo wifi..."); // init wifi module
     delay(100);
-    response = send_AT_ESP8266("AT+RST", 7000, "ready"); // resetto l'esp8266
+    response = send_AT_ESP8266("AT+RST", 7000, "ready"); // reset esp8266
 
     if (response == "TIMEOUT")
      if (DEBUG)
@@ -80,14 +81,14 @@ void setup()
         
     else
      if (DEBUG)
-        Serial.println("- Completato");
+        Serial.println("- Completato"); // completed
 
     // while(true);
 
     if (DEBUG)
         Serial.println("Impostazione connesioni multiple...");
     delay(100);
-    response = send_AT_ESP8266("AT+CIPMUX=1", 5000, "OK"); // imposto connessioni multiple
+    response = send_AT_ESP8266("AT+CIPMUX=1", 5000, "OK"); // set multiple connections
 
     if (response == "TIMEOUT") {
 if (DEBUG)
@@ -102,7 +103,7 @@ if (DEBUG)
         Serial.println("- Completato");
     }
 
-    String cmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\""; // compongo la stringa per la connessione wifi
+    String cmd = "AT+CWJAP=\"" + ssid + "\",\"" + password + "\""; // I compose the string for wifi
 
   lcd.clear();
   lcd.print("Connesione WIFI");
@@ -112,7 +113,7 @@ if (DEBUG)
 if (DEBUG)
     Serial.println("Connessione alla rete " + ssid + " in corso...");
     delay(100);
-    response = send_AT_ESP8266(cmd, 20000, "OK");
+    response = send_AT_ESP8266(cmd, 20000, "OK");  // connect to wifi
 
     if (response == "TIMEOUT") {
 
@@ -136,7 +137,7 @@ if (DEBUG)
     
 
     if (DEBUG) {
-        Serial.println("Inizializzazione completata");
+        Serial.println("Inizializzazione completata"); // initialization completed
         Serial.println("In attesa del TAG...");
     }
 
@@ -168,7 +169,7 @@ void loop()
    lcd.print("in corso...");
       
         
-        String codiceIdentificativo = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size);
+        String codiceIdentificativo = dump_byte_array(mfrc522.uid.uidByte, mfrc522.uid.size); // identification code
         if (DEBUG)
         {
         Serial.print(F("Card UID:"));
@@ -321,12 +322,12 @@ ResponseServerTCP timbra(String codiceIdentificativo)
     String request = codiceIdentificativo + "\r\n";
 
     cmd = "AT+CIPSEND=";
-    cmd += TARGET_ID + "," + request.length(); // calcolo la lunghezza dei byte da inviare
+    cmd += TARGET_ID + "," + request.length(); // calculating the length of bytes to be sent
 
     if (DEBUG)
         Serial.println("Invio il numero di byte della richiesta...");
     delay(100);
-    response = send_AT_ESP8266(cmd, 5000, ">"); // numero di byte da inviare
+    response = send_AT_ESP8266(cmd, 5000, ">"); 
     if (DEBUG) {
 
         if (response == "TIMEOUT")
@@ -342,7 +343,7 @@ ResponseServerTCP timbra(String codiceIdentificativo)
         Serial.println("Invio il codice identificativo...");
     delay(100);
 
-    response = send_AT_ESP8266(request, 10000, "&"); // invio il codice identificativo
+    response = send_AT_ESP8266(request, 10000, "&"); // sending the identification code
    
         if (response == "TIMEOUT") {
            if (DEBUG) 
@@ -373,7 +374,7 @@ ResponseServerTCP timbra(String codiceIdentificativo)
 
     if ((indexInizioTrasmissione == -1) || (indexFineTrasmissione == -1)) {
         if (DEBUG)
-            Serial.println("Errore: stringa non riconosciuta");
+            Serial.println("Errore: stringa non riconosciuta"); // Error: unrecognized string
 
         return responseTimbratura;
     }
@@ -389,26 +390,26 @@ ResponseServerTCP timbra(String codiceIdentificativo)
     int parametro = 0;
     int j = 0;
 
-    while (i < response.length()) {
+    while (i < response.length()) { // parse response
         if (response[i] == '.') {
             parametro++;
             j = -1;
-            //   Serial.println();
+           
         }
         else {
             if (parametro == 0) {
-                //  Serial.print(response[i]);
+               
                 responseTimbratura.esito[j] = response[i];
                 responseTimbratura.esito[j + 1] = '\0';
             }
 
             else if (parametro == 1) {
-                //   Serial.print(response[i]);
+              
                 responseTimbratura.messaggio[j] = response[i];
                 responseTimbratura.messaggio[j + 1] = '\0';
             }
             else if (parametro == 2) {
-                //  Serial.print(response[i]);
+               
                 responseTimbratura.dataOra[j] = response[i];
                 responseTimbratura.dataOra[j + 1] = '\0';
             }
@@ -416,12 +417,7 @@ ResponseServerTCP timbra(String codiceIdentificativo)
         j++;
         i++;
     }
-    //if (DEBUG)
-    //{
-    //    Serial.println(responseTimbratura.esito);
-    //   Serial.println(responseTimbratura.messaggio);
-    //    Serial.println(responseTimbratura.dataOra);
-    //}
+   
     response = "";
 
     return responseTimbratura;
@@ -435,7 +431,7 @@ void chiudiConnesione()
         Serial.println("Chiusura connessione...");
 
     delay(100);
-    response = send_AT_ESP8266("AT+CIPCLOSE=0", 5000, "OK"); // chiudo la connessione
+    response = send_AT_ESP8266("AT+CIPCLOSE=0", 5000, "OK"); // close the connection
 
     if (DEBUG) {
         if (response == "TIMEOUT")
@@ -466,7 +462,7 @@ int i = 0;
 }
 
 
-void scrollingLineLeft(String scrollLine,String fixLine,int wait)
+void scrollingLineLeft(String scrollLine,String fixLine,int wait) // scroll first row and fix second row
 {
   Serial.println(scrollLine);
 int scrollCursor = 15;
@@ -483,29 +479,26 @@ lcd.setCursor(scrollCursor, 0);
   lcd.print(fixLine);
   delay(350);
   lcd.clear();
- // Serial.println(stringStart);
-  // Serial.println(scrollCursor);
+
   if(stringStart == 0 && scrollCursor > 0){
-     //  Serial.println("primo");
+    
     scrollCursor--;
     stringStop++;
   } else if (stringStart == stringStop){
-    //  Serial.println("secondo");
+    
     stringStart = stringStop = 0;
     scrollCursor = 15;
   } else if (stringStop == scrollLine.length() && scrollCursor == 0) {
-    //  Serial.println("terzo");
+   
     stringStart++;
   } else {
-   //   Serial.println("quarto");
+   
     stringStart++;
     stringStop++;
   }
 
-  // Serial.print(millis());
-  // Serial.print("<");
- // Serial.println(timeout);
+ 
 }  
-// Serial.print("uscito");
+
  }
 
